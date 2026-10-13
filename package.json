@@ -1,0 +1,14 @@
+{
+  "name": "hadith-video-renderer",
+  "version": "1.0.0",
+  "description": "Timestamped audio to subtitle-card video in all ratios and qualities (HTML animation, Playwright capture, FFmpeg encode)",
+  "private": true,
+  "scripts": {
+    "render": "node render.js",
+    "test": "node render.js --test 10 --ratios 9x16,16x9",
+    "still": "node render.js --still 5,40,70 --ratios 9x16"
+  },
+  "dependencies": {
+    "playwright": "^1.49.0"
+  }
+}

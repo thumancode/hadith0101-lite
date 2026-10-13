@@ -1,0 +1,5 @@
+APP_NAME=ইসলামী বিশ্বকোষ ও আল হাদিস S2
+PILL=আজকের হাদিস
+FEATURES=কুরআন · তাফসির · ৪৫টি হাদিস গ্রন্থ · ইসলামী বই
+CTA_BUTTON=এখনই ডাউনলোড করুন
+BASENAME=hadith-video

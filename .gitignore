@@ -1,0 +1,16 @@
+# dependencies
+node_modules/
+
+# generated videos and stills (they are published in the GitHub Release, never committed)
+*.mp4
+*-still-*.png
+
+# frame folders and temp files (frames are written to the OS temp folder, this is just a safety net)
+frames/
+frames-*/
+tmp/
+*.log
+.DS_Store
+Thumbs.db
+
+# NOTE: do NOT ignore timestamps.txt, audio.mp3, brand.txt, logo.png, google-play-badge.png or font files.

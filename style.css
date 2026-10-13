@@ -1,0 +1,248 @@
+/* style.css — all styling. No frame sizes here: --W / --H are set by scenes.js from layout.js.
+
+   FONTS: the GitHub runner installs fonts-noto-core, fonts-hosny-amiri, fonts-freefont-ttf and
+   fonts-dejavu-core (see render.yml). To make the render identical everywhere you may also put a
+   font file in the main folder and declare it here, for example:
+
+   @font-face { font-family: 'MyBengali'; src: url('MyBengali.ttf'); font-weight: 400 900; }
+
+   and then add 'MyBengali' as the FIRST family in --bn below. (No font files were attached.) */
+
+:root {
+  --W: 1080px;
+  --H: 1920px;
+  --gold: #e4c55a;
+  --mint: #7bdcb2;
+  --cream: #fff8e6;
+  --dark: #063626;
+  --track: #21342e;
+
+  /* Bengali (all headings and subtitles) */
+  --bn: 'Noto Serif Bengali', 'Noto Sans Bengali', 'Noto Serif', 'FreeSerif', 'DejaVu Serif', serif;
+  /* Arabic script */
+  --ar: 'Amiri', 'Noto Naskh Arabic', 'FreeSerifBold', 'FreeSerif', 'DejaVu Sans', serif;
+  /* quote mark in the card badge (needs U+275D; DejaVu Sans has it) */
+  --sym: 'DejaVu Sans', 'FreeSerif', 'Noto Sans Symbols2', sans-serif;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  width: var(--W);
+  height: var(--H);
+  overflow: hidden;
+  background: #032017;
+}
+
+#stage {
+  position: relative;
+  width: var(--W);
+  height: var(--H);
+  overflow: hidden;
+  font-family: var(--bn);
+  color: var(--cream);
+  -webkit-font-smoothing: antialiased;
+}
+
+#stage div, #stage img { box-sizing: border-box; }
+
+/* ---------- background ---------- */
+#bg {
+  position: absolute; left: 0; top: 0; right: 0; bottom: 0;
+  background:
+    radial-gradient(ellipse at 50% 38%, rgba(123,220,178,0.30) 0%, rgba(123,220,178,0) 65%),
+    radial-gradient(ellipse at 50% 50%, rgba(0,0,0,0) 55%, rgba(0,0,0,0.45) 100%),
+    linear-gradient(to top, rgba(0,0,0,0.28) 0%, rgba(0,0,0,0) 28%),
+    linear-gradient(180deg, #0c261b 0%, #0f3e27 50%, #032017 100%);
+}
+
+/* faint geometric lattice — CSS only (two crossed 45° line sets + a dot layer) */
+#lattice {
+  position: absolute; left: 0; top: 0; right: 0; bottom: 0;
+  overflow: hidden;
+  visibility: hidden;
+}
+#lattice-in {
+  position: absolute; left: -40px; top: -40px; right: -40px; bottom: -40px;
+  background-image:
+    repeating-linear-gradient(45deg,  #ffffff 0px, #ffffff 1.5px, transparent 1.5px, transparent 155.56px),
+    repeating-linear-gradient(-45deg, #ffffff 0px, #ffffff 1.5px, transparent 1.5px, transparent 155.56px),
+    radial-gradient(circle at 50% 50%, #ffffff 0px, #ffffff 5px, transparent 5.5px);
+  background-size: auto, auto, 220px 220px;
+}
+
+#bg-final {
+  position: absolute; left: 0; top: 0; right: 0; bottom: 0;
+  background: radial-gradient(ellipse at 50% 46%, #0a4d34 0%, #063626 48%, #032c1f 100%);
+  visibility: hidden;
+}
+
+/* ---------- header ---------- */
+#header { position: absolute; left: 0; top: 0; right: 0; bottom: 0; visibility: hidden; }
+
+.icon-tile {
+  overflow: hidden;
+  background: #ffffff;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+}
+.icon-tile img {
+  position: absolute; left: 0; top: 0;
+  width: 100%; height: 100%;
+  object-fit: cover;                 /* the icon is not square: centre-crop it into the tile */
+  transform: scale(1.04);            /* crops the thin grey border of the picture */
+  display: block;
+}
+#header .icon-tile { position: absolute; }
+
+#hdr-name {
+  position: absolute;
+  white-space: nowrap;
+  color: var(--gold);
+  font-weight: 700;
+  text-align: center;
+}
+#hdr-name span, #hdr-pill span, #f-name span, #f-feat span, #f-btn span {
+  display: inline-block;
+  white-space: nowrap;
+}
+#hdr-pill {
+  position: absolute;
+  border: 1.5px solid var(--gold);
+  background: transparent;
+  color: var(--cream);
+  text-align: center;
+  white-space: nowrap;
+}
+
+/* ---------- cards ---------- */
+#cards { position: absolute; left: 0; top: 0; right: 0; bottom: 0; }
+
+.card {
+  position: absolute;
+  border: 3px solid var(--accent, #7bdcb2);
+  border-radius: 64px;
+  background: radial-gradient(ellipse at 50% 50%, rgba(21,61,38,0.92) 0%, rgba(7,53,35,0.92) 100%);
+  box-shadow: 0 24px 60px rgba(0,0,0,0.35);
+  visibility: hidden;
+}
+.card .inner {
+  position: absolute;
+  left: 70px; right: 70px; top: 70px; bottom: 70px;     /* padding ≈ 70 px on every side */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.card .txt, #f-cap .txt {
+  width: 100%;
+  text-align: center;
+  color: var(--cream);
+  font-family: var(--bn);
+  font-weight: 700;
+  word-spacing: 0.3em;
+}
+.card .txt.rtl, #f-cap .txt.rtl { direction: rtl; font-family: var(--ar); }
+
+.w { display: inline-block; opacity: 0; }
+.w.ar { font-family: var(--ar); unicode-bidi: isolate; }
+
+.card .badge {
+  position: absolute;
+  border-radius: 50%;
+  background: var(--accent, #7bdcb2);
+  color: var(--dark);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--sym);
+  font-weight: 700;
+  line-height: 1;
+  padding-top: 0.27em;                /* the quote glyph sits high in its line box */
+}
+
+/* ---------- sound-wave ---------- */
+#wave { position: absolute; left: 0; top: 0; right: 0; bottom: 0; visibility: hidden; }
+#wave .bar { position: absolute; }
+
+/* ---------- final scene ---------- */
+#final { position: absolute; left: 0; top: 0; right: 0; bottom: 0; }
+#stack {
+  position: absolute;
+  left: 0; top: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transform-origin: 0 0;
+}
+#stack > div { visibility: hidden; }
+
+#f-icon {
+  position: relative;
+  width: 320px; height: 320px;
+  border-radius: 78px;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.4);
+}
+#f-name {
+  margin-top: 24px;
+  font-size: 70px; line-height: 1.4;
+  font-weight: 700;
+  color: var(--gold);
+  white-space: nowrap;
+  text-align: center;
+}
+#f-feat {
+  margin-top: 40px;
+  font-size: 40px; line-height: 1.5;
+  color: #f3ecd2;
+  white-space: nowrap;
+  text-align: center;
+}
+#f-btn {
+  margin-top: 54px;
+  height: 101px;
+  padding: 0 100px;                    /* width = text + 200 px */
+  border-radius: 28px;
+  background: var(--gold);
+  color: var(--dark);
+  font-size: 40px; font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+}
+#f-cap {
+  margin-top: 36px;
+  max-width: 880px;
+}
+#f-cap .txt {
+  font-size: 40px;
+  line-height: 1.47;
+}
+#f-badge {
+  position: relative;
+  margin-top: 40px;
+  height: 110px;
+  border: 2px solid var(--gold);
+  border-radius: 14px;
+  overflow: hidden;
+  background: #000000;
+}
+#f-badge img {
+  position: absolute;
+  display: block;
+  max-width: none;
+}
+
+/* ---------- progress bar ---------- */
+#progress {
+  position: absolute;
+  left: 0;
+  width: var(--W);
+  background: var(--track);
+}
+#progress-fill {
+  position: absolute;
+  left: 0; top: 0;
+  height: 100%;
+  width: 0;
+  background: linear-gradient(90deg, #e4c55a 0%, #7bdcb2 100%);
+}

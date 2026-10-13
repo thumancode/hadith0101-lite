@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Subtitle-card video</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<!--
+  The page is a deterministic animation: window.renderAt(t) draws the frame for time t (seconds).
+  Open index.html?ratio=9x16 (or 16x9, 1x1, 4x5, 3x4, 4x3). Layout comes from layout.js,
+  texts from lines.js (timestamps.txt) and brand.js (brand.txt + audio length).
+-->
+<div id="stage">
+  <div id="bg"></div>
+  <div id="lattice"><div id="lattice-in"></div></div>
+  <div id="bg-final"></div>
+
+  <div id="header">
+    <div id="hdr-icon" class="icon-tile"><img src="logo.png" alt=""></div>
+    <div id="hdr-name"><span></span></div>
+    <div id="hdr-pill"><span></span></div>
+  </div>
+
+  <div id="cards"></div>
+  <div id="wave"></div>
+
+  <div id="final">
+    <div id="stack">
+      <div id="f-icon" class="icon-tile"><img src="logo.png" alt=""></div>
+      <div id="f-name"><span></span></div>
+      <div id="f-feat"><span></span></div>
+      <div id="f-btn"><span></span></div>
+      <div id="f-cap"><div class="txt"></div></div>
+      <div id="f-badge"><img id="badge" src="google-play-badge.png" alt=""></div>
+    </div>
+  </div>
+
+  <div id="progress"><div id="progress-fill"></div></div>
+</div>
+
+<script src="layout.js"></script>
+<script src="lines.js"></script>
+<script src="brand.js"></script>
+<script src="scenes.js"></script>
+</body>
+</html>
