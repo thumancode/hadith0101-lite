@@ -1,1 +1,155 @@
+name: Render video (all ratios) and publish Release
 
+# Actions tab → "Render video (all ratios) and publish Release" → Run workflow
+# When it finishes: open the repository's "Releases" section (right side of the main page)
+# and download any ratio / quality. The same files are also kept 30 days as run artifacts.
+on:
+  workflow_dispatch:
+    inputs:
+      ratios:
+        description: "Ratios to render, comma-separated (all: 9x16,16x9,1x1,4x5,3x4,4x3)"
+        required: false
+        default: "9x16,16x9,1x1,4x5,3x4,4x3"
+      tiers:
+        description: "Qualities, comma-separated (4k,fhd,hd)"
+        required: false
+        default: "4k,fhd,hd"
+      test_seconds:
+        description: "Test only: render the first N seconds (leave empty for the full video; test runs are NOT published as a Release)"
+        required: false
+        default: ""
+      workers:
+        description: "Parallel browsers per ratio job (empty = auto)"
+        required: false
+        default: ""
+      release_tag:
+        description: "Release tag (empty = auto: video-<run number>; an existing tag is updated)"
+        required: false
+        default: ""
+      release_title:
+        description: "Release title (empty = auto)"
+        required: false
+        default: ""
+
+permissions:
+  contents: read
+
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.m.outputs.matrix }}
+    steps:
+      - name: Build ratio matrix
+        id: m
+        env:
+          RATIOS: ${{ github.event.inputs.ratios }}
+        run: |
+          CLEAN=$(echo "$RATIOS" | tr -d ' ')
+          for r in $(echo "$CLEAN" | tr ',' ' '); do
+            case "$r" in
+              9x16|16x9|1x1|4x5|3x4|4x3) ;;
+              *) echo "Unknown ratio: $r"; exit 1 ;;
+            esac
+          done
+          JSON=$(echo "$CLEAN" | jq -R -c 'split(",") | map(select(length>0))')
+          echo "matrix=$JSON" >> "$GITHUB_OUTPUT"
+
+  render:
+    needs: plan
+    runs-on: ubuntu-latest
+    timeout-minutes: 150
+    strategy:
+      fail-fast: false
+      matrix:
+        ratio: ${{ fromJson(needs.plan.outputs.matrix) }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Free disk space
+        run: |
+          sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/lib/android /opt/hostedtoolcache/CodeQL || true
+          df -h /
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install FFmpeg and fonts
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg fonts-noto-core fonts-hosny-amiri fonts-freefont-ttf fonts-dejavu-core
+          fc-cache -f
+
+      - name: Install dependencies
+        run: |
+          npm install
+          npx playwright install --with-deps chromium
+
+      - name: Render ${{ matrix.ratio }}
+        env:
+          RATIO: ${{ matrix.ratio }}
+          TIERS: ${{ github.event.inputs.tiers }}
+          TEST_SECONDS: ${{ github.event.inputs.test_seconds }}
+          WORKERS: ${{ github.event.inputs.workers }}
+        run: |
+          ARGS="--ratios $RATIO --tiers ${TIERS:-4k,fhd,hd}"
+          if [ -n "$TEST_SECONDS" ]; then ARGS="$ARGS --test $TEST_SECONDS"; fi
+          if [ -n "$WORKERS" ]; then ARGS="$ARGS --workers $WORKERS"; fi
+          node render.js $ARGS
+          ls -lh *.mp4
+
+      - name: Upload videos (artifact)
+        uses: actions/upload-artifact@v4
+        with:
+          name: video-${{ matrix.ratio }}
+          path: "*.mp4"
+          if-no-files-found: error
+          retention-days: 30
+          compression-level: 0
+
+  release:
+    needs: render
+    if: ${{ github.event.inputs.test_seconds == '' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download all videos
+        uses: actions/download-artifact@v4
+        with:
+          pattern: video-*
+          merge-multiple: true
+          path: out
+
+      - name: Publish GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG_INPUT: ${{ github.event.inputs.release_tag }}
+          TITLE_INPUT: ${{ github.event.inputs.release_title }}
+        run: |
+          TAG="${TAG_INPUT:-video-${{ github.run_number }}}"
+          TITLE="${TITLE_INPUT:-Video in all ratios and qualities (run ${{ github.run_number }})}"
+          cd out
+          ls -lh
+          {
+            echo "Rendered by GitHub Actions run ${{ github.run_number }}."
+            echo
+            echo "| File | Size |"
+            echo "|---|---|"
+            for f in *.mp4; do echo "| $f | $(du -h "$f" | cut -f1) |"; done
+            echo
+            echo "**Which file?**"
+            echo "- 9x16 = TikTok, Instagram Reels/Stories, YouTube Shorts, Facebook Reels"
+            echo "- 16x9 = YouTube long video, websites, client work"
+            echo "- 1x1 / 4x5 / 3x4 = feed posts (Facebook, Instagram, LinkedIn, X)"
+            echo "- 4x3 = classic screens and slide decks"
+            echo "- 4k = best quality / archive, fhd = normal upload, hd = small file"
+          } > ../notes.md
+          if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release upload "$TAG" *.mp4 --clobber --repo "$GITHUB_REPOSITORY"
+          else
+            gh release create "$TAG" *.mp4 --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --title "$TITLE" --notes-file ../notes.md
+          fi
